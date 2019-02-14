@@ -11,7 +11,7 @@ xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211)}
-nikon = cam(vector([0,0,0]),1.5,xres,yres,0.1,100)
+nikon = cam(vector([0,0,0]),2.5,xres,yres,0.1,100,display)
 
 '''
 def p(t):
@@ -19,7 +19,7 @@ def p(t):
 def r(t):
 	return arbitrary_rotation(vector(0,1,0),t/10.0)
 '''
-cube = graph(vector([0,0,15]))
+cube = graph(vector([0,0,25]))
 wave = 0
 t = 0
 
@@ -47,7 +47,7 @@ def read_obj(file_name,origin):
 
 def assign_wave():
 	global wave
-	wave = read_obj("bunny.obj",vector([0,0,5]))
+	wave = read_obj("wave.obj",vector([0,0,15]))
 	print(wave.count)
 
 def draw_wave():
@@ -55,12 +55,18 @@ def draw_wave():
 	#wave.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0.01)
 	for tri in wave.data:
+		nikon.draw_triangle(tri)
+		'''
 		if ((tri.normal*((nikon.origin-tri.data[0]).direction())) > 0):
 			projection_1 = nikon.project(tri.data[0])
 			projection_2 = nikon.project(tri.data[1])
 			projection_3 = nikon.project(tri.data[2])
 			if ((projection_1 != -1) and (projection_2 != -1) and (projection_3 != -1)):
+				
 				pygame.draw.polygon(display,tri.color,[projection_1,projection_2,projection_3],0)
+				pygame.draw.lines(display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
+				pygame.draw.lines(display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
+		'''
 	t += 0.1	
 def assign_cube():
 	global nikon, xres, cube, colors
@@ -125,7 +131,7 @@ while not crashed:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			crashed = True
-
+	print(clock.get_fps())
 	#draw_cube()
 	draw_wave()
 	pygame.display.update()
