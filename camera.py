@@ -10,6 +10,8 @@ class cam:
 		self.origin = origin
 		self.fov = fov
 		self.display = display
+		self.buffer = []
+
 	def projection_matrix(self,v_plus):
 		a = self.yres/(self.xres+0.0)
 		f = 1/math.tan(self.fov/2.0)
@@ -34,3 +36,11 @@ class cam:
 			if wireframe:
 				pygame.draw.lines(self.display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
 				pygame.draw.lines(self.display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
+	def push(self, mesh):
+		self.buffer += mesh.data
+	
+	def pop(self):
+		self.buffer = sorted(self.buffer, key=lambda x:(x.data[0].data[2]+x.data[1].data[2]+x.data[2].data[2])/3.0, reverse=True)
+		for tri in self.buffer:
+			self.draw_triangle(tri,True)
+		self.buffer = []

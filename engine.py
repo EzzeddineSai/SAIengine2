@@ -47,26 +47,14 @@ def read_obj(file_name,origin):
 
 def assign_wave():
 	global wave
-	wave = read_obj("wave.obj",vector([0,0,15]))
+	wave = read_obj("bunny2.obj",vector([0,0,25]))
 	print(wave.count)
 
 def draw_wave():
 	global nikon, xres, wave, display,t
-	#wave.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0.01)
-	for tri in wave.data:
-		nikon.draw_triangle(tri)
-		'''
-		if ((tri.normal*((nikon.origin-tri.data[0]).direction())) > 0):
-			projection_1 = nikon.project(tri.data[0])
-			projection_2 = nikon.project(tri.data[1])
-			projection_3 = nikon.project(tri.data[2])
-			if ((projection_1 != -1) and (projection_2 != -1) and (projection_3 != -1)):
-				
-				pygame.draw.polygon(display,tri.color,[projection_1,projection_2,projection_3],0)
-				pygame.draw.lines(display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
-				pygame.draw.lines(display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
-		'''
+	nikon.push(wave)
+
 	t += 0.1	
 def assign_cube():
 	global nikon, xres, cube, colors
@@ -134,6 +122,7 @@ while not crashed:
 	print(clock.get_fps())
 	#draw_cube()
 	draw_wave()
+	nikon.pop()
 	pygame.display.update()
 	clock.tick(60)
 
