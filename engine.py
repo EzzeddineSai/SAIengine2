@@ -53,7 +53,7 @@ def assign_wave():
 def draw_wave():
 	global nikon, xres, wave, display,t
 	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0.01)
-	nikon.draw_obj(wave)
+	nikon.push(wave)
 
 	t += 0.1	
 def assign_cube():
@@ -93,7 +93,6 @@ crashed = False
 mouse_motion = (0,0)
 assign_cube()
 assign_wave()
-i = 0.01
 while not crashed:
 	display.fill(colors["white"])
 	'''
@@ -120,14 +119,12 @@ while not crashed:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			crashed = True
-	#print(clock.get_fps())
+	print(clock.get_fps())
 	#draw_cube()
 	draw_wave()
 	nikon.pop()
 	pygame.display.update()
-	if (i <100):
-		nikon.move(vector([0,0,0]), i, vector([0,1,0]))
+	nikon.move(vector([0,0,0]), 0.01, vector([0,1,0]))
 	#print(nikon.zaxis.numerical())
 	clock.tick(60)
-	#i += 0.01
 pygame.quit()
