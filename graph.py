@@ -1,6 +1,5 @@
 import math
 import numpy as np
-from camera import *
 from vector import *
 
 class triangle:
@@ -17,11 +16,12 @@ class triangle:
 		_p2 = remove_w(vector(np.matmul(m,add_w(self.data[1]).numerical()).tolist()))
 		_p3 = remove_w(vector(np.matmul(m,add_w(self.data[2]).numerical()).tolist()))
 		return triangle([_p1,_p2,_p3],self.color)
-	#def reseqeunce(self,orientation):
-	#	if (self.normal*orientation < 0):
-	#		return triangle([self.p1,self.p3,self.p2],self.color)
-	#	else:
-	#		return triangle(self.data,self.color)
+	
+	def reseqeunce(self,orientation):
+		if (self.normal*orientation < 0):
+			return triangle([self.data[0],self.data[2],self.data[1]],self.color)
+		else:
+			return triangle(self.data,self.color)
 class graph:
 	def __init__(self, origin, displacement=None, rotation=None, mass=0):
 		self.origin = origin
