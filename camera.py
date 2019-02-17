@@ -3,7 +3,7 @@ from vector import *
 from graph import *
 import pygame
 class cam:
-	def __init__(self,origin,fov,xres,yres,zmin,zmax,display,xaxis=vector([1,0,0]),yaxis=vector([0,1,0])):
+	def __init__(self,origin,fov,xres,yres,zmin,zmax,display,xaxis=vector([-1,0,0]),yaxis=vector([0,-1,0])):
 		self.zmin = zmin
 		self.zmax = zmax
 		self.xres = xres
@@ -77,10 +77,10 @@ class cam:
 		self.xaxis = remove_w(vector(np.matmul(rotation,add_w(self.xaxis).numerical())))
 		self.yaxis = remove_w(vector(np.matmul(rotation,add_w(self.yaxis).numerical())))
 		self.zaxis = cross(self.xaxis,self.yaxis)
-		self.state = np.array([[self.xaxis.data[0],self.yaxis.data[0],self.zaxis.data[0],0],
-		[self.xaxis.data[1],self.yaxis.data[1],self.zaxis.data[1],0],
-		[self.xaxis.data[2],self.yaxis.data[2],self.zaxis.data[2],0],
-		[(self.xaxis*motion)*-1,(self.yaxis*motion)*-1,(self.zaxis*motion)*-1,1]])
+		self.state = np.array([[self.xaxis.data[0],self.yaxis.data[0],self.zaxis.data[0],(self.xaxis*self.origin)*-1],
+		[self.xaxis.data[1],self.yaxis.data[1],self.zaxis.data[1],(self.yaxis*self.origin)*-1],
+		[self.xaxis.data[2],self.yaxis.data[2],self.zaxis.data[2],(self.zaxis*self.origin)*-1],
+		[0,0,0,1]])
 	
 	def line_intersection(self, v1, v2, normal):
 		d = (((self.origin+self.zaxis.scale(self.zmin))-v1)*normal)/((v2-v1)*(normal))

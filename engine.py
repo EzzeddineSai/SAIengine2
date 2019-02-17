@@ -47,12 +47,12 @@ def read_obj(file_name,origin):
 
 def assign_wave():
 	global wave
-	wave = read_obj("bunny2.obj",vector([0,0,25]))
+	wave = read_obj("bunny2.obj",vector([0,0,45]))
 	print(wave.count)
 
 def draw_wave():
 	global nikon, xres, wave, display,t
-	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0.01)
+	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0)
 	nikon.push(wave)
 
 	t += 0.1	
@@ -73,7 +73,7 @@ def assign_cube():
 			
 def draw_cube():
 	global nikon, xres, cube, display,t
-	cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
+	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	for tri in cube.data:
 		if ((tri.normal*((nikon.origin-tri.data[0]).direction())) > 0):
 			projection_1 = nikon.project(tri.data[0])
@@ -86,45 +86,44 @@ def draw_cube():
 
 
 pygame.display.set_caption("SAIengine")
-#pygame.mouse.set_visible(False)
-#pygame.event.set_grab(True)
+pygame.mouse.set_visible(False)
+pygame.event.set_grab(True)
 clock = pygame.time.Clock()
 crashed = False
 mouse_motion = (0,0)
 assign_cube()
-assign_wave()
+#assign_wave()
 while not crashed:
 	display.fill(colors["white"])
-	'''
+
 	mouse = pygame.mouse.get_pos()
 	keys = pygame.key.get_pressed()
-	nikon.rotate_x(0.4*mouse_motion[0]/(xres+0.0))
-	nikon.rotate_y(0.4*mouse_motion[1]/(yres+0.0))
-	if keys[pygame.K_UP]:
-		nikon.translate(nikon.plane_normal.scale(0.07))
-	if keys[pygame.K_DOWN]:
-		nikon.translate(nikon.plane_normal.scale(-0.07))
-	if keys[pygame.K_LEFT]:
-			nikon.translate(nikon.xaxis.scale(-0.07))
-	if keys[pygame.K_RIGHT]:
-			nikon.translate(nikon.xaxis.scale(0.07))
-	
+	#nikon.rotate_x(0.4*mouse_motion[0]/(xres+0.0))
+	#nikon.rotate_y(0.4*mouse_motion[1]/(yres+0.0))
+	if keys[pygame.K_SPACE]:
+		nikon.move(vector([0,0.1,0]), 0, vector([0,1,0]))
+	if keys[pygame.K_LSHIFT]:
+		nikon.move(vector([0,-0.1,0]), 0, vector([0,1,0]))
+	if keys[pygame.K_a]:
+		nikon.move(vector([-0.1,0,0]), 0, vector([0,1,0]))
+	if keys[pygame.K_d]:
+		nikon.move(vector([0.1,0,0]), 0, vector([0,1,0]))
+	if keys[pygame.K_w]:
+		nikon.move(nikon.zaxis.scale(0.1), 0, vector([0,1,0]))
+	if keys[pygame.K_s]:
+		nikon.move(nikon.zaxis.scale(-0.1), 0, vector([0,1,0]))
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEMOTION:
 			mouse_motion = pygame.mouse.get_rel()
 		if event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_ESCAPE:
 				crashed = True
-	'''
-	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			crashed = True
-	print(clock.get_fps())
-	#draw_cube()
-	draw_wave()
+	#print(clock.get_fps())
+	draw_cube()
+	#draw_wave()
 	nikon.pop()
 	pygame.display.update()
-	nikon.move(vector([0,0,0]), 0.01, vector([0,1,0]))
-	#print(nikon.zaxis.numerical())
 	clock.tick(60)
 pygame.quit()

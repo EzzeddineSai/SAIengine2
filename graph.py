@@ -5,7 +5,10 @@ from vector import *
 class triangle:
 	def __init__(self,data,color):
 		self.data = data
-		self.normal = cross(self.data[1]-self.data[0],self.data[2]-self.data[0]).direction()
+		try:
+			self.normal = cross(self.data[1]-self.data[0],self.data[2]-self.data[0]).direction()
+		except:
+			print(self.data[0].numerical(),self.data[1].numerical(),self.data[2].numerical())
 		self.color = color
 
 	def translate(self, destination):
@@ -46,13 +49,7 @@ class graph:
 		self.relative_data.append(relative_tri)
 		self.data.append(relative_tri.translate(self.origin))
 		self.count += 1
-	'''
-	def update_tri(self,rotator):
-		self.data = []
-		for relative in self.relative_data:
-			rotated = relative.rotate(rotator)
-			self.data.append(rotated.translate(self.origin))
-	'''
+
 class special: #relative to intial reference frame
 	def __init__(self,origin,vilocity):
 		self.origin = origin
