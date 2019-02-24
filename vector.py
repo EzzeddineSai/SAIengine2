@@ -46,6 +46,9 @@ def remove_w(v1):
 		return vector([v1.data[0],v1.data[1],v1.data[2]]).scale(1/(v1.data[3]+0.0))
 	return -1
 
+def metric(v1, v2):
+	return (v1-v2).dim()
+
 def rotation_matrix(axis,theta):
 	t = 1-math.cos(theta)
 	C = math.cos(theta)

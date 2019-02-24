@@ -14,7 +14,7 @@ class cam:
 		self.buffer = []
 		self.xaxis = xaxis
 		self.yaxis = yaxis
-		self.zaxis = add_w(cross(self.xaxis,self.yaxis))
+		self.zaxis = cross(self.xaxis,self.yaxis)
 		self.state = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
 
 	def projection_matrix(self,v_plus):
@@ -47,26 +47,26 @@ class cam:
 		self.buffer += mesh.data
 
 	def pop(self):
-		xplane_left = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,self.fov/2.0),add_w(self.xaxis).numerical()))).scale(-1)
-		xplane_right = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,-self.fov/2.0),add_w(self.xaxis).numerical())))
-		zplane = self.zaxis
+		#xplane_left = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,self.fov/2.0),add_w(self.xaxis).numerical()))).scale(-1)
+		#xplane_right = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,-self.fov/2.0),add_w(self.xaxis).numerical())))
+		#zplane = self.zaxis
 		temp = self.buffer
 
-		self.buffer = []
-		for tri in temp:
-			self.clip_against(tri, xplane_left)
-		temp = self.buffer
+		#self.buffer = []
+		#for tri in temp:
+		#	self.clip_against(tri, xplane_left)
+		#temp = self.buffer
 		
-		self.buffer = []
-		for tri in temp:
-			self.clip_against(tri, xplane_right)
-		temp = self.buffer
+		#self.buffer = []
+		#for tri in temp:
+		#	self.clip_against(tri, xplane_right)
+		#temp = self.buffer
 		
 		self.buffer = []
 		for tri in temp:
 			self.clippers(tri)
 		
-		self.buffer = sorted(self.buffer, key=lambda x:(x.data[0].data[2]+x.data[1].data[2]+x.data[2].data[2])/3.0, reverse=True)
+		self.buffer = sorted(self.buffer, key=lambda x:(metric(x.data[0],self.origin)+metric(x.data[1],self.origin)+metric(x.data[2],self.origin))/3.0, reverse=True)
 		for tri in self.buffer:
 			self.draw_triangle(tri,True)
 		self.buffer = []
@@ -76,15 +76,18 @@ class cam:
 		rotation =  rotation_matrix(axis,angle)
 		self.xaxis = remove_w(vector(np.matmul(rotation,add_w(self.xaxis).numerical())))
 		self.yaxis = remove_w(vector(np.matmul(rotation,add_w(self.yaxis).numerical())))
-		self.zaxis = cross(self.xaxis,self.yaxis)
+		self.zaxis = remove_w(vector(np.matmul(rotation,add_w(self.zaxis).numerical())))
+		#self.zaxis = cross(self.xaxis,self.yaxis)
+		if (((self.zaxis.numerical()[1] < 0.11) and (self.zaxis.numerical()[1] > 0.09)) or ((self.zaxis.numerical()[1] < 0.01) and (self.zaxis.numerical()[1] > -0.01))):
+			print(self.zaxis.numerical())
 		self.state = np.array([[self.xaxis.data[0],self.yaxis.data[0],self.zaxis.data[0],(self.xaxis*self.origin)*-1],
 		[self.xaxis.data[1],self.yaxis.data[1],self.zaxis.data[1],(self.yaxis*self.origin)*-1],
 		[self.xaxis.data[2],self.yaxis.data[2],self.zaxis.data[2],(self.zaxis*self.origin)*-1],
 		[0,0,0,1]])
 	
 	def line_intersection(self, v1, v2, normal):
-		d = (((self.origin+self.zaxis.scale(self.zmin))-v1)*normal)/((v2-v1)*(normal))
-		pnt = ((v2-v1).scale(d))+v1
+		d = (((self.origin+self.zaxis.scale(self.zmin))-v2)*normal)/((v2-v1)*(normal))
+		pnt = ((v2-v1).scale(d))+v2
 		return pnt
 	
 	def clippers(self,tri):
@@ -92,32 +95,40 @@ class cam:
 		inside = []
 		if ((tri.normal*((self.origin-tri.data[0]).direction())) > 0):
 			for i in range(3):
-				if ((tri.data[i]-(self.origin+self.zaxis.scale(self.zmin)))*self.zaxis >= 0):
+				if ((tri.data[i]-(self.origin+self.zaxis.scale(self.zmin)))*self.zaxis > 0):
 					inside.append(i)
 				else:
 					outside.append(i)
 			
 			if (len(outside) == 0):
 				self.buffer.append(tri)
-			
+			'''
 			if (len(outside) == 1):
 				v1 = self.line_intersection(tri.data[outside[0]],tri.data[inside[0]],self.zaxis)
 				v2 = self.line_intersection(tri.data[outside[0]],tri.data[inside[1]],self.zaxis)
-				self.buffer.append(triangle([v1,v2,tri.data[inside[0]]],tri.color).reseqeunce(tri.normal))
-				self.buffer.append(triangle([v1,v2,tri.data[inside[1]]],tri.color).reseqeunce(tri.normal))
+				
+				try:
+					print("promo")
+					self.buffer.append(triangle([v1,v2,tri.data[inside[0]]],tri.color).reseqeunce(tri.normal))
+					self.buffer.append(triangle([v1,v2,tri.data[inside[1]]],tri.color).reseqeunce(tri.normal))
+				except:
+					#pass
+					print("no")
+					#print((tri.data[inside[0]]-tri.data[outside[0]]).numerical(),(tri.data[inside[1]]-tri.data[outside[0]]).numerical(),self.zaxis.numerical())
 			if (len(outside) == 2):
 				data = [0,0,0]
 				data[inside[0]] = tri.data[inside[0]]
 				data[outside[0]] = self.line_intersection(tri.data[outside[0]],tri.data[inside[0]],self.zaxis)
 				data[outside[1]] = self.line_intersection(tri.data[outside[1]],tri.data[inside[0]],self.zaxis)
 				self.buffer.append(triangle(data,tri.color))
-
+				print("nono")
+			'''
 	def clip_against(self, tri, normal):
 		outside = []
 		inside = []
 		if ((tri.normal*((self.origin-tri.data[0]).direction())) > 0):
 			for i in range(3):
-				if ((tri.data[i]-self.origin+(self.zaxis.scale(self.zmin)))*normal >= 0):
+				if ((tri.data[i]-self.origin+(self.zaxis.scale(self.zmin)))*normal > 0):
 					inside.append(i)
 				else:
 					outside.append(i)

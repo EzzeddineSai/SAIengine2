@@ -4,22 +4,22 @@ from vector import *
 from camera import cam
 from graph import *
 from random import randint
-
+#model matrix (model to world),  view matrix (world to camera cordinates), projection matrix (camera to perspective)
 pygame.init()
 
 xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211)}
-nikon = cam(vector([0,0,0]),2.5,xres,yres,0.1,100,display)
+nikon = cam(vector([25,0,10]),2.5,xres,yres,0.1,100,display,vector([-1,0,-1]).direction(),vector([0,-1,0]))
 
-'''
-def p(t):
-	return vector(0,math.cos(t),0)+vector(0,0,15)
-def r(t):
-	return arbitrary_rotation(vector(0,1,0),t/10.0)
-'''
-cube = graph(vector([0,0,25]))
+
+cube1 = graph(vector([-8,0,25]))
+cube2 = graph(vector([8,0,25]))
+cube3 = graph(vector([18,0,18]))
+plane = graph(vector([0,-5,30]),1, 1, 1,5)
+plane.add_tri([vector([-1,0,-1]),vector([-1,0,1]),vector([1,0,1])],colors["blue"])
+plane.add_tri([vector([-1,0,-1]),vector([1,0,1]),vector([1,0,-1])],colors["blue"])
 wave = 0
 t = 0
 
@@ -56,8 +56,9 @@ def draw_wave():
 	nikon.push(wave)
 
 	t += 0.1	
-def assign_cube():
-	global nikon, xres, cube, colors
+
+def assign_cube(cube):
+	global nikon, xres, colors
 	cube.add_tri([vector([-1,-1,1]),vector([1,-1,1]),vector([1,1,1])],colors["blue"])
 	cube.add_tri([vector([-1,-1,1]),vector([1,1,1]),vector([-1,1,1])],colors["blue"])
 	cube.add_tri([vector([1,-1,1]),vector([1,-1,-1]),vector([1,1,-1])],colors["green"])
@@ -71,19 +72,15 @@ def assign_cube():
 	cube.add_tri([vector([1,-1,1]),vector([-1,-1,-1]),vector([1,-1,-1])],colors["red"])
 	cube.add_tri([vector([1,-1,1]),vector([-1,-1,1]),vector([-1,-1,-1])],colors["yellow"])
 			
-def draw_cube():
-	global nikon, xres, cube, display,t
+def draw_cube(cube):
+	global nikon, xres, display,t
+	nikon.push(cube)
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
-	for tri in cube.data:
-		if ((tri.normal*((nikon.origin-tri.data[0]).direction())) > 0):
-			projection_1 = nikon.project(tri.data[0])
-			projection_2 = nikon.project(tri.data[1])
-			projection_3 = nikon.project(tri.data[2])
-
-			if ((projection_1 != -1) and (projection_2 != -1) and (projection_3 != -1)):
-				pygame.draw.polygon(display,tri.color,[projection_1,projection_2,projection_3],0)
 	t += 0.1
 
+def draw_plane():
+	global plane, nikon
+	nikon.push(plane)
 
 pygame.display.set_caption("SAIengine")
 pygame.mouse.set_visible(False)
@@ -91,27 +88,39 @@ pygame.event.set_grab(True)
 clock = pygame.time.Clock()
 crashed = False
 mouse_motion = (0,0)
-assign_cube()
+mouse_position = (0,0)
+assign_cube(cube1)
+assign_cube(cube2)
+assign_cube(cube3)
+
+count = pygame.joystick.get_count()
+for i in range(count):
+	joystick = pygame.joystick.Joystick(i)
+	joystick.init()
 #assign_wave()
 while not crashed:
+        
 	display.fill(colors["white"])
 
 	mouse = pygame.mouse.get_pos()
 	keys = pygame.key.get_pressed()
-	#nikon.rotate_x(0.4*mouse_motion[0]/(xres+0.0))
-	#nikon.rotate_y(0.4*mouse_motion[1]/(yres+0.0))
+	#nikon.move(vector([0,0.0,0]), (-0.1*mouse_motion[0])/(xres+0.0),nikon.yaxis)
+	nikon.move(vector([0,0.0,0]), (-0.1*mouse_motion[1])/(yres+0.0),nikon.xaxis)
 	if keys[pygame.K_SPACE]:
 		nikon.move(vector([0,0.1,0]), 0, vector([0,1,0]))
 	if keys[pygame.K_LSHIFT]:
 		nikon.move(vector([0,-0.1,0]), 0, vector([0,1,0]))
 	if keys[pygame.K_a]:
-		nikon.move(vector([-0.1,0,0]), 0, vector([0,1,0]))
+		nikon.move(nikon.xaxis.scale(0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_d]:
-		nikon.move(vector([0.1,0,0]), 0, vector([0,1,0]))
+		
+		nikon.move(nikon.xaxis.scale(-0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_w]:
-		nikon.move(nikon.zaxis.scale(0.1), 0, vector([0,1,0]))
+		x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
+		nikon.move(remove_w(vector(x_to_forward)).scale(0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_s]:
-		nikon.move(nikon.zaxis.scale(-0.1), 0, vector([0,1,0]))
+		x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
+		nikon.move(remove_w(vector(x_to_forward)).scale(-0.1), 0, vector([0,1,0]))
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEMOTION:
 			mouse_motion = pygame.mouse.get_rel()
@@ -121,9 +130,14 @@ while not crashed:
 		if event.type == pygame.QUIT:
 			crashed = True
 	#print(clock.get_fps())
-	draw_cube()
+	draw_plane()
+	draw_cube(cube1)
+	draw_cube(cube2)
+	draw_cube(cube3)
 	#draw_wave()
+	#print(nikon.xaxis.numerical())
 	nikon.pop()
 	pygame.display.update()
-	clock.tick(60)
+	
+	clock.tick(35)
 pygame.quit()
