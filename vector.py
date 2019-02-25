@@ -35,9 +35,12 @@ def get_angle(v1,v2):
 def cross(v1,v2):
 	return vector([(v1.data[1]*v2.data[2])-(v1.data[2]*v2.data[1]),(v1.data[2]*v2.data[0])-(v1.data[0]*v2.data[2]),(v1.data[0]*v2.data[1])-(v1.data[1]*v2.data[0])])
 
-def project_to(v1,v2):
+def scalar_project(v1,v2): #v1 to v2
     return (v1*v2)/(v2.dim())
-
+def vector_project(v1,v2):
+	return v2.scale(scalar_project(v1,v2))
+def vector_anti_project(v1,v2):	
+	return v2-vector_project(v1,v2)
 def add_w(v1):
 	return vector(v1.data+[1])
 

@@ -2,6 +2,7 @@ import math
 from vector import *
 from graph import *
 import pygame
+import time
 class cam:
 	def __init__(self,origin,fov,xres,yres,zmin,zmax,display,xaxis=vector([-1,0,0]),yaxis=vector([0,-1,0])):
 		self.zmin = zmin
@@ -48,9 +49,6 @@ class cam:
 		[0,0,q,1],
 		[0,0,-1*self.zmin*q,0]])
 		return m
-		#m = np.matmul(k,self.state)
-		#projection = remove_w(vector(np.matmul(m,v_plus.numerical()).tolist()))
-		#return projection
 
 	def project(self, v):
 		normalized = self.projection_matrix() @ self.view_matrix() @ v
@@ -92,8 +90,7 @@ class cam:
 		#self.buffer = []
 		#for tri in temp:
 		#	self.clippers(tri)
-		
-		self.buffer = sorted(self.buffer, key=lambda x:(metric(x.data[0],self.origin)+metric(x.data[1],self.origin)+metric(x.data[2],self.origin))/3.0, reverse=True)
+		self.buffer = sorted(self.buffer, key=lambda x:min(metric(x.data[0],self.origin),metric(x.data[1],self.origin),metric(x.data[2],self.origin)), reverse=True)
 		for tri in self.buffer:
 			self.draw_triangle(tri,True)
 		self.buffer = []
@@ -105,20 +102,6 @@ class cam:
 		#ap = remove_w(vector(np.matmul(self.view_matrix(),add_w(axis).numerical())))
 		rotator =  rotation_matrix(axis,angle)
 		self.target = self.origin+remove_w(vector(np.matmul(rotator,add_w((self.target- self.origin).direction()).numerical())))
-
-	def move(self, motion, angle, axis):
-		
-		rotation =  rotation_matrix(axis,angle)
-		self.xaxis = remove_w(vector(np.matmul(rotation,add_w(self.xaxis).numerical())))
-		self.yaxis = remove_w(vector(np.matmul(rotation,add_w(self.yaxis).numerical())))
-		self.zaxis = remove_w(vector(np.matmul(rotation,add_w(self.zaxis).numerical())))
-		#self.zaxis = cross(self.xaxis,self.yaxis)
-		if (((self.zaxis.numerical()[1] < 0.11) and (self.zaxis.numerical()[1] > 0.09)) or ((self.zaxis.numerical()[1] < 0.01) and (self.zaxis.numerical()[1] > -0.01))):
-			print(self.zaxis.numerical())
-		self.state = np.array([[self.xaxis.data[0],self.yaxis.data[0],self.zaxis.data[0],(self.xaxis*self.origin)*-1],
-		[self.xaxis.data[1],self.yaxis.data[1],self.zaxis.data[1],(self.yaxis*self.origin)*-1],
-		[self.xaxis.data[2],self.yaxis.data[2],self.zaxis.data[2],(self.zaxis*self.origin)*-1],
-		[0,0,0,1]])
 	
 	def line_intersection(self, v1, v2, normal):
 		d = (((self.origin+self.zaxis.scale(self.zmin))-v2)*normal)/((v2-v1)*(normal))

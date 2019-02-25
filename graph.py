@@ -7,24 +7,6 @@ class triangle:
 		self.data = data
 		self.normal = cross(self.data[1]-self.data[0],self.data[2]-self.data[0]).direction()
 		self.color = color
-	'''
-	def translate(self, destination):
-		return triangle([self.data[0]+destination,self.data[1]+destination,self.data[2]+destination],self.color)
-	def resize(self, amount):
-		return triangle([self.data[0].scale(amount),self.data[1].scale(amount),self.data[2].scale(amount)],self.color)
-
-	def rotate(self,m):
-		_p1 = remove_w(vector(np.matmul(m,add_w(self.data[0]).numerical()).tolist()))
-		_p2 = remove_w(vector(np.matmul(m,add_w(self.data[1]).numerical()).tolist()))
-		_p3 = remove_w(vector(np.matmul(m,add_w(self.data[2]).numerical()).tolist()))
-		return triangle([_p1,_p2,_p3],self.color)
-	
-	def reseqeunce(self,orientation):
-		if (self.normal*orientation < 0):
-			return triangle([self.data[0],self.data[2],self.data[1]],self.color)
-		else:
-			return triangle(self.data,self.color)
-	'''
 class graph:
 	def __init__(self, origin):
 		self.origin = origin

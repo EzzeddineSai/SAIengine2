@@ -4,6 +4,7 @@ from vector import *
 from camera import cam
 from graph import *
 from random import randint
+import time
 #model matrix (model to world),  view matrix (world to camera cordinates), projection matrix (camera to perspective)
 pygame.init()
 
@@ -43,8 +44,7 @@ def read_obj(file_name,origin):
 				faces.append([int(temp3[1])-1,int(temp3[2])-1,int(temp3[3])-1])
 	for tri in faces:
 		mesh.add_tri([vector(vertices[tri[0]]),vector(vertices[tri[1]]),vector(vertices[tri[2]])],colors["green"])
-	return mesh
-	
+	return mesh	
 
 def assign_wave():
 	global wave
@@ -99,37 +99,29 @@ count = pygame.joystick.get_count()
 for i in range(count):
 	joystick = pygame.joystick.Joystick(i)
 	joystick.init()
-assign_wave()
+#assign_wave()
+sensitivity = 0.2
 while not crashed:
         
 	display.fill(colors["white"])
 
 	mouse = pygame.mouse.get_pos()
 	keys = pygame.key.get_pressed()
-	#nikon.move(vector([0,0.0,0]), (-0.1*mouse_motion[0])/(xres+0.0),nikon.yaxis)
-	#nikon.move(vector
-	# ([0,0.0,0]), (-0.1*mouse_motion[1])/(yres+0.0),nikon.xaxis)
-	nikon.rotate((0.1*mouse_motion[1])/(yres+0.0), nikon.right(1))
-	nikon.rotate((0.1*mouse_motion[0])/(xres+0.0), nikon.upwards(1))
+	nikon.rotate((0.4*mouse_motion[1])/(yres+0.0), nikon.right(1))
+	nikon.rotate((0.4*mouse_motion[0])/(xres+0.0), nikon.upwards(1))
 	if keys[pygame.K_SPACE]:
-		nikon.translate(vector([0,0.2,0]))
+		nikon.translate(nikon.up.scale(sensitivity))
 	if keys[pygame.K_LSHIFT]:
-		nikon.translate(vector([0,-0.2,0]))
+		nikon.translate(nikon.up.scale(-1*sensitivity))
 
 	if keys[pygame.K_a]:
-		nikon.translate(nikon.right(-0.1))
-		#nikon.move(nikon.xaxis.scale(0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.right(-1*sensitivity))
 	if keys[pygame.K_d]:
-		nikon.translate(nikon.right(0.1))
-		#nikon.move(nikon.xaxis.scale(-0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.right(sensitivity))
 	if keys[pygame.K_w]:
-		nikon.translate(nikon.forward(0.1))
-		#x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
-		#nikon.move(remove_w(vector(x_to_forward)).scale(0.1), 0, vector([0,1,0]))
+		nikon.translate(cross(nikon.up,nikon.right(-1)).scale(sensitivity))
 	if keys[pygame.K_s]:
-		nikon.translate(nikon.forward(-0.1))
-		#x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
-		#nikon.move(remove_w(vector(x_to_forward)).scale(-0.1), 0, vector([0,1,0]))
+		nikon.translate(cross(nikon.up,nikon.right(1)).scale(sensitivity))
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEMOTION:
 			mouse_motion = pygame.mouse.get_rel()
@@ -140,10 +132,10 @@ while not crashed:
 			crashed = True
 	#print(clock.get_fps())
 	#draw_plane()
-	#draw_cube(cube1)
-	#draw_cube(cube2)
-	#draw_cube(cube3)
-	draw_wave()
+	draw_cube(cube1)
+	draw_cube(cube2)
+	draw_cube(cube3)
+	#draw_wave()
 	nikon.pop()
 	pygame.display.update()
 	
