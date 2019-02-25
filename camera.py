@@ -8,7 +8,7 @@ class cam:
 		self.zmax = zmax
 		self.xres = xres
 		self.yres = yres
-		self.origin = origin
+		self.origin = origin	#eye
 		self.fov = fov
 		self.display = display
 		self.buffer = []
@@ -16,36 +16,63 @@ class cam:
 		self.yaxis = yaxis
 		self.zaxis = cross(self.xaxis,self.yaxis)
 		self.state = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+		self.up = vector([0,1,0])	#for tilt
+		self.target = vector([0,0,1])	#point to look
 
-	def projection_matrix(self,v_plus):
+	def view_matrix(self):
+		f = (self.origin - self.target).direction()	#direction of viewing
+		r = cross(f,self.up).direction()	#right axis
+		u = cross(r,f)	#insure up is orthogonal
+		m = np.array([[r.data[0],r.data[1],r.data[2],(r*self.origin)*-1],[u.data[0],u.data[1],u.data[2],(u*self.origin)*-1],
+		[f.data[0],f.data[1],f.data[2],(f*self.origin)*-1],[0,0,0,1]])
+		
+		return m
+	def right(self,sensitivity):
+		f = (self.origin - self.target).direction()	#direction of viewing
+		r = cross(f,self.up).direction()
+		return r.scale(sensitivity)
+	def forward(self,sensitivity):
+		f = (self.origin - self.target).direction()
+		return f.scale(-1*sensitivity)
+	def upwards(self,sensitivity):
+		f = (self.origin - self.target).direction()	#direction of viewing
+		r = cross(f,self.up).direction()	#right axis
+		u = cross(r,f)
+		return u.scale(sensitivity)
+	def projection_matrix(self):
 		a = self.yres/(self.xres+0.0)
 		f = 1/math.tan(self.fov/2.0)
 		q = self.zmax/(self.zmax-self.zmin+0.0)
-		k = np.array([[a*f,0,0,0],
+		m = np.array([[a*f,0,0,0],
 		[0,f,0,0],
 		[0,0,q,1],
 		[0,0,-1*self.zmin*q,0]])
-		m = np.matmul(k,self.state)
-		projection = remove_w(vector(np.matmul(m,v_plus.numerical()).tolist()))
-		return projection
+		return m
+		#m = np.matmul(k,self.state)
+		#projection = remove_w(vector(np.matmul(m,v_plus.numerical()).tolist()))
+		#return projection
 
 	def project(self, v):
-		normalized = self.projection_matrix(add_w(v))
-		return ((self.xres*normalized.data[0])+(self.xres/2.0),-1*((self.yres*normalized.data[1])-self.yres/2.0))
+		normalized = self.projection_matrix() @ self.view_matrix() @ v
+		n = remove_w(vector(normalized))
+		return ((self.xres*n.data[0])+(self.xres/2.0),-1*((self.yres*n.data[1])-self.yres/2.0))
 
 	def draw_triangle(self, tri, wireframe=False):
-		if ((tri.normal*((self.origin-tri.data[0]).direction())) > 0):
-			projection_1 = self.project(tri.data[0])
-			projection_2 = self.project(tri.data[1])
-			projection_3 = self.project(tri.data[2])
-			pygame.draw.polygon(self.display,tri.color,[projection_1,projection_2,projection_3],0)
-			if wireframe:
-				pygame.draw.lines(self.display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
-				pygame.draw.lines(self.display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
+		#if ((tri.normal*((self.origin-tri.data[0]).direction())) > 0):
+		projection_1 = self.project(add_w(tri.data[0]).numerical())
+		projection_2 = self.project(add_w(tri.data[1]).numerical())
+		projection_3 = self.project(add_w(tri.data[2]).numerical())
+		pygame.draw.polygon(self.display,tri.color,[projection_1,projection_2,projection_3],0)
+		if wireframe:
+			pygame.draw.lines(self.display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
+			pygame.draw.lines(self.display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
 	
 	def push(self, mesh):
-		self.buffer += mesh.data
-
+		for polygon in mesh.polygon_data:
+			v1 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[0]).numerical())))
+			v2 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[1]).numerical())))
+			v3 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[2]).numerical())))
+			self.buffer.append(triangle([v1,v2,v3],polygon.color))
 	def pop(self):
 		#xplane_left = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,self.fov/2.0),add_w(self.xaxis).numerical()))).scale(-1)
 		#xplane_right = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,-self.fov/2.0),add_w(self.xaxis).numerical())))
@@ -62,17 +89,25 @@ class cam:
 		#	self.clip_against(tri, xplane_right)
 		#temp = self.buffer
 		
-		self.buffer = []
-		for tri in temp:
-			self.clippers(tri)
+		#self.buffer = []
+		#for tri in temp:
+		#	self.clippers(tri)
 		
 		self.buffer = sorted(self.buffer, key=lambda x:(metric(x.data[0],self.origin)+metric(x.data[1],self.origin)+metric(x.data[2],self.origin))/3.0, reverse=True)
 		for tri in self.buffer:
 			self.draw_triangle(tri,True)
 		self.buffer = []
+	def translate(self, displacement):
+		self.origin += displacement
+		self.target += displacement
+
+	def rotate(self, angle, axis):
+		#ap = remove_w(vector(np.matmul(self.view_matrix(),add_w(axis).numerical())))
+		rotator =  rotation_matrix(axis,angle)
+		self.target = self.origin+remove_w(vector(np.matmul(rotator,add_w((self.target- self.origin).direction()).numerical())))
 
 	def move(self, motion, angle, axis):
-		self.origin += motion
+		
 		rotation =  rotation_matrix(axis,angle)
 		self.xaxis = remove_w(vector(np.matmul(rotation,add_w(self.xaxis).numerical())))
 		self.yaxis = remove_w(vector(np.matmul(rotation,add_w(self.yaxis).numerical())))

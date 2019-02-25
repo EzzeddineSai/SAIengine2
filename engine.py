@@ -11,15 +11,16 @@ xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211)}
-nikon = cam(vector([25,0,10]),2.5,xres,yres,0.1,100,display,vector([-1,0,-1]).direction(),vector([0,-1,0]))
+nikon = cam(vector([0,0,0]),2.5,xres,yres,0.1,100,display)
 
 
-cube1 = graph(vector([-8,0,25]))
-cube2 = graph(vector([8,0,25]))
+cube1 = graph(vector([-5,0,25]))
+cube2 = graph(vector([5,0,25]))
 cube3 = graph(vector([18,0,18]))
-plane = graph(vector([0,-5,30]),1, 1, 1,5)
+plane = graph(vector([0,-1,20]))
 plane.add_tri([vector([-1,0,-1]),vector([-1,0,1]),vector([1,0,1])],colors["blue"])
 plane.add_tri([vector([-1,0,-1]),vector([1,0,1]),vector([1,0,-1])],colors["blue"])
+plane.scale(10)
 wave = 0
 t = 0
 
@@ -48,11 +49,11 @@ def read_obj(file_name,origin):
 def assign_wave():
 	global wave
 	wave = read_obj("bunny2.obj",vector([0,0,45]))
-	print(wave.count)
+	print(wave.polygons)
 
 def draw_wave():
 	global nikon, xres, wave, display,t
-	wave.transform(vector([0,0,0]).scale(0.1),vector([0,1,1]),0)
+	wave.rotate(vector([0,1,0]),0.03)
 	nikon.push(wave)
 
 	t += 0.1	
@@ -75,6 +76,7 @@ def assign_cube(cube):
 def draw_cube(cube):
 	global nikon, xres, display,t
 	nikon.push(cube)
+	cube.rotate(vector([0,1,0]),0.03)
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	t += 0.1
 
@@ -97,7 +99,7 @@ count = pygame.joystick.get_count()
 for i in range(count):
 	joystick = pygame.joystick.Joystick(i)
 	joystick.init()
-#assign_wave()
+assign_wave()
 while not crashed:
         
 	display.fill(colors["white"])
@@ -105,22 +107,29 @@ while not crashed:
 	mouse = pygame.mouse.get_pos()
 	keys = pygame.key.get_pressed()
 	#nikon.move(vector([0,0.0,0]), (-0.1*mouse_motion[0])/(xres+0.0),nikon.yaxis)
-	nikon.move(vector([0,0.0,0]), (-0.1*mouse_motion[1])/(yres+0.0),nikon.xaxis)
+	#nikon.move(vector
+	# ([0,0.0,0]), (-0.1*mouse_motion[1])/(yres+0.0),nikon.xaxis)
+	nikon.rotate((0.1*mouse_motion[1])/(yres+0.0), nikon.right(1))
+	nikon.rotate((0.1*mouse_motion[0])/(xres+0.0), nikon.upwards(1))
 	if keys[pygame.K_SPACE]:
-		nikon.move(vector([0,0.1,0]), 0, vector([0,1,0]))
+		nikon.translate(vector([0,0.2,0]))
 	if keys[pygame.K_LSHIFT]:
-		nikon.move(vector([0,-0.1,0]), 0, vector([0,1,0]))
+		nikon.translate(vector([0,-0.2,0]))
+
 	if keys[pygame.K_a]:
-		nikon.move(nikon.xaxis.scale(0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.right(-0.1))
+		#nikon.move(nikon.xaxis.scale(0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_d]:
-		
-		nikon.move(nikon.xaxis.scale(-0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.right(0.1))
+		#nikon.move(nikon.xaxis.scale(-0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_w]:
-		x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
-		nikon.move(remove_w(vector(x_to_forward)).scale(0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.forward(0.1))
+		#x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
+		#nikon.move(remove_w(vector(x_to_forward)).scale(0.1), 0, vector([0,1,0]))
 	if keys[pygame.K_s]:
-		x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
-		nikon.move(remove_w(vector(x_to_forward)).scale(-0.1), 0, vector([0,1,0]))
+		nikon.translate(nikon.forward(-0.1))
+		#x_to_forward = np.matmul(rotation_matrix(vector([0,1,0]),math.pi/2.0),add_w(nikon.xaxis).numerical())
+		#nikon.move(remove_w(vector(x_to_forward)).scale(-0.1), 0, vector([0,1,0]))
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEMOTION:
 			mouse_motion = pygame.mouse.get_rel()
@@ -130,14 +139,13 @@ while not crashed:
 		if event.type == pygame.QUIT:
 			crashed = True
 	#print(clock.get_fps())
-	draw_plane()
-	draw_cube(cube1)
-	draw_cube(cube2)
-	draw_cube(cube3)
-	#draw_wave()
-	#print(nikon.xaxis.numerical())
+	#draw_plane()
+	#draw_cube(cube1)
+	#draw_cube(cube2)
+	#draw_cube(cube3)
+	draw_wave()
 	nikon.pop()
 	pygame.display.update()
 	
-	clock.tick(35)
+	clock.tick(60)
 pygame.quit()
