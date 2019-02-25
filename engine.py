@@ -76,7 +76,7 @@ def assign_cube(cube):
 def draw_cube(cube):
 	global nikon, xres, display,t
 	nikon.push(cube)
-	cube.rotate(vector([0,1,0]),0.03)
+	cube.rotate(vector([0.3,1,1.2]).direction(),0.03)
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	t += 0.1
 
@@ -84,33 +84,39 @@ count = pygame.joystick.get_count()
 xbox_controler = False
 for i in range(count):
 	joystick = pygame.joystick.Joystick(i)
-	if (joystick.get_name() == "Controller (XBOX 360 For Win dows)"):
+	if (joystick.get_name() == "Controller (XBOX 360 For Windows)"):
 		joystick.init()
 		xbox_controler = True
 		break
 
-def game_pad(l_sensitivity, r_sensitivity):
+def game_pad(l_sensitivity, r_sensitivity, t_sensitivity):
 	global joystick, nikon
 	analog_right = joystick.get_axis(4)
 	analog_up = joystick.get_axis(3)
 	analog_forward = joystick.get_axis(1)
 	analog_right_t = joystick.get_axis(0)
+	analog_fly = joystick.get_axis(2)
+	#print([joystick.get_button(4),joystick.get_button(5),joystick.get_button(6),joystick.get_button(7)])
 	if analog_right > 0.2:
-		nikon.rotate(r_sensitivity*analog_right, nikon.up)
+		nikon.rotate(r_sensitivity*analog_right*nikon.fov, nikon.up)
 	if analog_right < -0.2:
-		nikon.rotate(r_sensitivity*analog_right, nikon.up)
+		nikon.rotate(r_sensitivity*analog_right*nikon.fov, nikon.up)
 	if analog_up > 0.2:
-		nikon.rotate(r_sensitivity*analog_up, nikon.right(1))
+		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.right(1))
 	if analog_up < -0.2:
-		nikon.rotate(r_sensitivity*analog_up, nikon.right(1))
+		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.right(1))
 	if 	analog_right_t > 0.2:
-		nikon.translate(nikon.right(l_sensitivity*analog_right_t))
+		nikon.translate(nikon.right(l_sensitivity*analog_right_t*nikon.fov))
 	if 	analog_right_t < -0.2:
-		nikon.translate(nikon.right(l_sensitivity *analog_right_t))
+		nikon.translate(nikon.right(l_sensitivity *analog_right_t*nikon.fov))
 	if 	analog_forward  > 0.2:
-		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward))
+		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward*nikon.fov))
 	if 	analog_forward < -0.2:
-		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward))
+		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward*nikon.fov))
+	if analog_fly < -0.2:
+		nikon.translate(nikon.up.scale(-1*analog_fly*t_sensitivity))
+	if analog_fly > 0.2:
+		nikon.translate(nikon.up.scale(-1*analog_fly*t_sensitivity))
 
 def draw_plane():
 	global plane, nikon
@@ -162,7 +168,7 @@ while not crashed:
 	mouse = pygame.mouse.get_pos()
 
 	if (xbox_controler):
-		game_pad(0.4,0.02)
+		game_pad(0.1,0.005,0.2)
 	else:
 		keys = pygame.key.get_pressed()
 		key_board(keys,0.2)
