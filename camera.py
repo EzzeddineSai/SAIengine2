@@ -3,6 +3,7 @@ from vector import *
 from graph import *
 import pygame
 import time
+
 class cam:
 	def __init__(self,origin,fov,xres,yres,zmin,zmax,display,xaxis=vector([-1,0,0]),yaxis=vector([0,-1,0])):
 		self.zmin = zmin

@@ -80,35 +80,53 @@ def draw_cube(cube):
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	t += 0.1
 
+count = pygame.joystick.get_count()
+xbox_controler = False
+for i in range(count):
+	joystick = pygame.joystick.Joystick(i)
+	if (joystick.get_name() == "Controller (XBOX 360 For Win dows)"):
+		joystick.init()
+		xbox_controler = True
+		break
+
+def game_pad(l_sensitivity, r_sensitivity):
+	global joystick, nikon
+	analog_right = joystick.get_axis(4)
+	analog_up = joystick.get_axis(3)
+	analog_forward = joystick.get_axis(1)
+	analog_right_t = joystick.get_axis(0)
+	if analog_right > 0.2:
+		nikon.rotate(r_sensitivity*analog_right, nikon.up)
+	if analog_right < -0.2:
+		nikon.rotate(r_sensitivity*analog_right, nikon.up)
+	if analog_up > 0.2:
+		nikon.rotate(r_sensitivity*analog_up, nikon.right(1))
+	if analog_up < -0.2:
+		nikon.rotate(r_sensitivity*analog_up, nikon.right(1))
+	if 	analog_right_t > 0.2:
+		nikon.translate(nikon.right(l_sensitivity*analog_right_t))
+	if 	analog_right_t < -0.2:
+		nikon.translate(nikon.right(l_sensitivity *analog_right_t))
+	if 	analog_forward  > 0.2:
+		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward))
+	if 	analog_forward < -0.2:
+		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward))
+
 def draw_plane():
 	global plane, nikon
 	nikon.push(plane)
 
-pygame.display.set_caption("SAIengine")
-pygame.mouse.set_visible(False)
-pygame.event.set_grab(True)
-clock = pygame.time.Clock()
-crashed = False
-mouse_motion = (0,0)
-mouse_position = (0,0)
-assign_cube(cube1)
-assign_cube(cube2)
-assign_cube(cube3)
-
-count = pygame.joystick.get_count()
-for i in range(count):
-	joystick = pygame.joystick.Joystick(i)
-	joystick.init()
-#assign_wave()
-sensitivity = 0.2
-while not crashed:
-        
-	display.fill(colors["white"])
-
-	mouse = pygame.mouse.get_pos()
-	keys = pygame.key.get_pressed()
-	nikon.rotate((0.4*mouse_motion[1])/(yres+0.0), nikon.right(1))
-	nikon.rotate((0.4*mouse_motion[0])/(xres+0.0), nikon.upwards(1))
+def key_board(keys,sensitivity):
+	global nikon
+	if keys[pygame.K_RIGHT]:
+		#nikon.rotate((0.4*mouse_motion[1])/(yres+0.0), nikon.right(1))
+		nikon.rotate(0.05*sensitivity, nikon.up)
+	if keys[pygame.K_LEFT]:
+		nikon.rotate(-0.05*sensitivity, nikon.up)
+	if keys[pygame.K_UP]:
+		nikon.rotate(-0.05*sensitivity, nikon.right(1))
+	if keys[pygame.K_DOWN]:
+		nikon.rotate(0.05*sensitivity, nikon.right(1))
 	if keys[pygame.K_SPACE]:
 		nikon.translate(nikon.up.scale(sensitivity))
 	if keys[pygame.K_LSHIFT]:
@@ -122,6 +140,32 @@ while not crashed:
 		nikon.translate(cross(nikon.up,nikon.right(-1)).scale(sensitivity))
 	if keys[pygame.K_s]:
 		nikon.translate(cross(nikon.up,nikon.right(1)).scale(sensitivity))
+
+pygame.display.set_caption("SAIengine")
+pygame.mouse.set_visible(False)
+pygame.event.set_grab(True)
+clock = pygame.time.Clock()
+crashed = False
+mouse_motion = (0,0)
+mouse_position = (0,0)
+assign_cube(cube1)
+assign_cube(cube2)
+assign_cube(cube3)
+
+
+#assign_wave()
+
+while not crashed:
+	#print([joystick.get_axis(0),joystick.get_axis(1),joystick.get_axis(2),joystick.get_axis(3),joystick.get_axis(4)])
+
+	display.fill(colors["white"])
+	mouse = pygame.mouse.get_pos()
+
+	if (xbox_controler):
+		game_pad(0.4,0.02)
+	else:
+		keys = pygame.key.get_pressed()
+		key_board(keys,0.2)
 	for event in pygame.event.get():
 		if event.type == pygame.MOUSEMOTION:
 			mouse_motion = pygame.mouse.get_rel()
@@ -141,3 +185,5 @@ while not crashed:
 	
 	clock.tick(60)
 pygame.quit()
+
+#add: depth sort, clipping, fix camera axis, mouse control,  oganising data, buffers and effiency,
