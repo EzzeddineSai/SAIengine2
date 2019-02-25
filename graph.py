@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from numpy.linalg import multi_dot
 from vector import *
 
 class triangle:
@@ -30,16 +31,17 @@ class graph:
 		[(t*axis.data[0]*axis.data[2])-(S*axis.data[1]),(t*axis.data[1]*axis.data[2])+(S*axis.data[0]),(t*(axis.data[2]**2))+C,0],
 		[0,0,0,1]])
 		self.rotation_matrix = np.matmul(m,self.rotation_matrix)
-		self.model_matrix = self.translation_matrix  @ self.rotation_matrix @ self.scale_matrix
+		#normalized = 
+		self.model_matrix = multi_dot([ self.translation_matrix , self.rotation_matrix , self.scale_matrix])
 
 	def translate(self,displacement):
 		m = np.array([[1,0,0,displacement.data[0]],[0,1,0,displacement[1]],[0,0,1,displacement[2]],[0,0,0,1]])
 		self.translation_matrix = np.matmul(m,self.translation_matrix )
-		self.model_matrix = self.translation_matrix  @ self.rotation_matrix @ self.scale_matrix
+		self.model_matrix = multi_dot([ self.translation_matrix , self.rotation_matrix , self.scale_matrix])
 
 	def scale(self, scaler):
 		self.scale_matrix = np.matmul(np.array([[scaler,0,0,0],[0,scaler,0,0],[0,0,scaler,0],[0,0,0,1]]),self.scale_matrix)
-		self.model_matrix = self.translation_matrix  @ self.rotation_matrix @ self.scale_matrix
+		self.model_matrix = multi_dot([ self.translation_matrix , self.rotation_matrix , self.scale_matrix])
 
 	def add_vertex(self, pos):
 		self.vertex_buffer.append(pos)

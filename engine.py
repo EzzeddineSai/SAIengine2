@@ -192,4 +192,4 @@ while not crashed:
 	clock.tick(60)
 pygame.quit()
 
-#add: depth sort, clipping, fix camera axis, mouse control,  oganising data, buffers and effiency,
+#add: depth sort, clipping, fix camera axis, mouse control,  oganising data, index buffers and effiency,

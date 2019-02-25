@@ -2,7 +2,10 @@ import math
 from vector import *
 from graph import *
 import pygame
+import numpy as np
 import time
+from numpy.linalg import multi_dot
+
 
 class cam:
 	def __init__(self,origin,fov,xres,yres,zmin,zmax,display,xaxis=vector([-1,0,0]),yaxis=vector([0,-1,0])):
@@ -52,7 +55,7 @@ class cam:
 		return m
 
 	def project(self, v):
-		normalized = self.projection_matrix() @ self.view_matrix() @ v
+		normalized = multi_dot([self.projection_matrix() , self.view_matrix() , v])
 		n = remove_w(vector(normalized))
 		return ((self.xres*n.data[0])+(self.xres/2.0),-1*((self.yres*n.data[1])-self.yres/2.0))
 
@@ -65,18 +68,39 @@ class cam:
 		if wireframe:
 			pygame.draw.lines(self.display,(0,0,0),True,[projection_1,projection_2,projection_3],5)
 			pygame.draw.lines(self.display,(255,255,255),True,[projection_1,projection_2,projection_3],1)
-	
+
 	def push(self, mesh):
 		for polygon in mesh.polygon_data:
 			v1 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[0]).numerical())))
 			v2 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[1]).numerical())))
 			v3 = remove_w(vector(np.matmul(mesh.model_matrix,add_w(polygon.data[2]).numerical())))
-			self.buffer.append(triangle([v1,v2,v3],polygon.color))
+			tri = triangle([v1,v2,v3],polygon.color)
+			if ((tri.normal*((self.origin-tri.data[0]).direction())) > 0):
+				self.buffer.append(tri)
+	
+	def depth_sort(self):
+		d = (self.origin*self.forward(1))*-1
+		for i in range(len(self.buffer)):
+			for j in range(i+1,len(self.buffer)):
+				i1 = (self.buffer[i].data[0]*self.forward(1))+d
+				i2 = (self.buffer[i].data[1]*self.forward(1))+d
+				i3 = (self.buffer[i].data[2]*self.forward(1))+d
+				maximum = max(i1,i2,i3)
+				j1 = (self.buffer[j].data[0]*self.forward(1))+d
+				j2 = (self.buffer[j].data[1]*self.forward(1))+d
+				j3 = (self.buffer[j].data[2]*self.forward(1))+d
+				minimum = min(j1,j2,j3)
+				#print([maximum,minimum])
+				if maximum < minimum:
+					temp = self.buffer[i]
+					self.buffer[i] = self.buffer[j]
+					self.buffer[j] = temp
+	
 	def pop(self):
 		#xplane_left = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,self.fov/2.0),add_w(self.xaxis).numerical()))).scale(-1)
 		#xplane_right = remove_w(vector(np.matmul(rotation_matrix(self.yaxis,-self.fov/2.0),add_w(self.xaxis).numerical())))
 		#zplane = self.zaxis
-		temp = self.buffer
+		#temp = self.buffer
 
 		#self.buffer = []
 		#for tri in temp:
@@ -91,7 +115,9 @@ class cam:
 		#self.buffer = []
 		#for tri in temp:
 		#	self.clippers(tri)
-		self.buffer = sorted(self.buffer, key=lambda x:min(metric(x.data[0],self.origin),metric(x.data[1],self.origin),metric(x.data[2],self.origin)), reverse=True)
+		#for tri in temp:
+		#self.buffer = sorted(self.buffer, key=lambda x:min(metric(x.data[0],self.origin),metric(x.data[1],self.origin),metric(x.data[2],self.origin)), reverse=True)
+		self.depth_sort()
 		for tri in self.buffer:
 			self.draw_triangle(tri,True)
 		self.buffer = []
