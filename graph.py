@@ -8,6 +8,11 @@ class triangle:
 		self.data = data
 		self.normal = cross(self.data[1]-self.data[0],self.data[2]-self.data[0]).direction()
 		self.color = color
+	def resequence(self, target):
+		if self.normal*target < 0:
+			return triangle([self.data[0],self.data[2],self.data[1]],self.color)
+		else:
+			return self
 class graph:
 	def __init__(self, origin):
 		self.origin = origin

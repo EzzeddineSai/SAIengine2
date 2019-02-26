@@ -181,7 +181,7 @@ while not crashed:
 		if event.type == pygame.QUIT:
 			crashed = True
 	#print(clock.get_fps())
-	#draw_plane()
+	draw_plane()
 	draw_cube(cube1)
 	draw_cube(cube2)
 	draw_cube(cube3)
