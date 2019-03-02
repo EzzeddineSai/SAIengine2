@@ -2,11 +2,13 @@ import math
 import numpy as np
 from numpy.linalg import multi_dot
 from vector import *
-
 class triangle:
 	def __init__(self,data,color):
 		self.data = data
-		self.normal = cross(self.data[1]-self.data[0],self.data[2]-self.data[0]).direction()
+		self.area = cross(self.data[1]-self.data[0],self.data[2]-self.data[0])
+		self.normal = vector([0,1,0])
+		if self.area.dim() != 0:
+			self.normal = self.area.direction()
 		self.color = color
 	def resequence(self, target):
 		if self.normal*target < 0:

@@ -12,7 +12,7 @@ xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211)}
-nikon = cam(vector([0,0,0]),2.5,xres,yres,0.1,100,display)
+nikon = cam(vector([0,0,0]),1.7,xres,yres,1.3,100,display)
 
 
 cube1 = graph(vector([-5,0,25]))
@@ -76,7 +76,7 @@ def assign_cube(cube):
 def draw_cube(cube):
 	global nikon, xres, display,t
 	nikon.push(cube)
-	cube.rotate(vector([0.3,1,1.2]).direction(),0.03)
+	cube.rotate(vector([0,1,0]).direction(),0.03)
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	t += 0.1
 
@@ -181,10 +181,10 @@ while not crashed:
 		if event.type == pygame.QUIT:
 			crashed = True
 	#print(clock.get_fps())
-	draw_plane()
+	#draw_plane()
 	draw_cube(cube1)
-	draw_cube(cube2)
-	draw_cube(cube3)
+	#draw_cube(cube2)
+	#draw_cube(cube3)
 	#draw_wave()
 	nikon.pop()
 	pygame.display.update()

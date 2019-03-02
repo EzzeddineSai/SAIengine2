@@ -27,8 +27,13 @@ class vector:
 		return vector([self.data[i]-v.data[i] for i in range(self.components)])
 	def __mul__(self, v):
 		return sum(self.data[i]*v.data[i] for i in range(self.components))
-
-
+	def __eq__(self, v):
+		if(self.components == v.components):
+			for i in range(self.components):
+				if self.data[i] != v.data[i]:
+					return False
+			return True
+		return False
 def get_angle(v1,v2):
     return math.acos((v1*v2)/(v1.dim()*v2.dim()))
 
