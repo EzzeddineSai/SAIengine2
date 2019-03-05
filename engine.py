@@ -11,11 +11,11 @@ pygame.init()
 xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
-colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211)}
-nikon = cam(vector([0,0,0]),1.7,xres,yres,1.3,100,display)
+colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211),"go":(0,78,100)}
+nikon = cam(vector([0,0,0]),1.7,xres,yres,0.3,100,display)
 
 
-cube1 = graph(vector([-5,0,25]))
+cube1 = graph(vector([-3,0,10]))
 cube2 = graph(vector([5,0,25]))
 cube3 = graph(vector([18,0,18]))
 plane = graph(vector([0,-1,20]))
@@ -65,18 +65,18 @@ def assign_cube(cube):
 	cube.add_tri([vector([1,-1,1]),vector([1,-1,-1]),vector([1,1,-1])],colors["green"])
 	cube.add_tri([vector([1,-1,1]),vector([1,1,-1]),vector([1,1,1])],colors["black"])
 	cube.add_tri([vector([1,-1,-1]),vector([-1,-1,-1]),vector([-1,1,-1])],colors["black"])
-	cube.add_tri([vector([1,-1,-1]),vector([-1,1,-1]),vector([1,1,-1])],colors["green"])
+	cube.add_tri([vector([1,-1,-1]),vector([-1,1,-1]),vector([1,1,-1])],colors["go"])
+
 	cube.add_tri([vector([-1,-1,-1]),vector([-1,-1,1]),vector([-1,1,1])],colors["red"])
 	cube.add_tri([vector([-1,-1,-1]),vector([-1,1,1]),vector([-1,1,-1])],colors["red"])
 	cube.add_tri([vector([-1,1,1]),vector([1,1,1]),vector([1,1,-1])],colors["yellow"])
 	cube.add_tri([vector([-1,1,1]),vector([1,1,-1]),vector([-1,1,-1])],colors["blue"])
 	cube.add_tri([vector([1,-1,1]),vector([-1,-1,-1]),vector([1,-1,-1])],colors["red"])
 	cube.add_tri([vector([1,-1,1]),vector([-1,-1,1]),vector([-1,-1,-1])],colors["yellow"])
-			
 def draw_cube(cube):
 	global nikon, xres, display,t
 	nikon.push(cube)
-	cube.rotate(vector([0,1,0]).direction(),0.03)
+	#cube.rotate(vector([0,1,0]).direction(),0.03)
 	#cube.transform(vector([math.cos(t),math.sin(t),math.sin(t)]).scale(0.1),vector([0,1,1]).direction(),0.03)
 	t += 0.1
 
@@ -168,7 +168,7 @@ while not crashed:
 	mouse = pygame.mouse.get_pos()
 
 	if (xbox_controler):
-		game_pad(0.1,0.005,0.2)
+		game_pad(0.03,0.005,0.05)
 	else:
 		keys = pygame.key.get_pressed()
 		key_board(keys,0.2)
@@ -187,6 +187,7 @@ while not crashed:
 	#draw_cube(cube3)
 	#draw_wave()
 	nikon.pop()
+	#nikon.draw_wire(cube1)
 	pygame.display.update()
 	
 	clock.tick(60)

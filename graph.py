@@ -25,7 +25,7 @@ class graph:
 		self.scale_matrix = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
 		self.rotation_matrix = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
 		self.translation_matrix = np.array([[1,0,0,self.origin.data[0]],[0,1,0,self.origin.data[1]],[0,0,1,self.origin.data[2]],[0,0,0,1]])
-		self.model_matrix = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+		self.model_matrix = np.array(self.translation_matrix, copy=True)
 		self.vertex_buffer = []
 		self.index_buffer = []
 

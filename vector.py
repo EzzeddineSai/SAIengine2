@@ -1,10 +1,10 @@
 import math
 import numpy as np
 class vector:
-	def __init__(self, data):
+	def __init__(self, data, w=1):
 		self.data = data
 		self.components = len(self.data)
-
+		self.w = w
 	def dim(self):
 		return  math.sqrt(sum(i**2 for i in self.data))
 
@@ -34,6 +34,7 @@ class vector:
 					return False
 			return True
 		return False
+
 def get_angle(v1,v2):
     return math.acos((v1*v2)/(v1.dim()*v2.dim()))
 
@@ -50,8 +51,17 @@ def add_w(v1):
 	return vector(v1.data+[1])
 
 def remove_w(v1):
+	if v1.components == 4:
+		if (v1.data[3] != 0):
+			return vector([v1.data[0],v1.data[1],v1.data[2]]).scale(1/(v1.data[3]+0.0))
+		return -1
+	elif v1.components == 3:
+		return vector([v1.data[0],v1.data[1],v1.data[2]]).scale(1/(v1.w+0.0))
+	return -1
+
+def save_w(v1):
 	if (v1.data[3] != 0):
-		return vector([v1.data[0],v1.data[1],v1.data[2]]).scale(1/(v1.data[3]+0.0))
+		return vector([v1.data[0],v1.data[1],v1.data[2]],v1.data[3])
 	return -1
 
 def metric(v1, v2):
