@@ -30,10 +30,10 @@ class cam:
 		[self.forward.data[0],self.forward.data[1],self.forward.data[2],(self.forward*self.origin)*-1],[0,0,0,1]])
 
 		self.projection_matrix = np.array([
-		[-1*self.yres/(self.xres+0.0)/math.tan(self.fov/2.0),0,0,0],
-		[0,-1/math.tan(self.fov/2.0),0,0],
-		[0,0,-1*(self.zmax+self.zmin)/(self.zmax-self.zmin+0.0),(-2*self.zmin*self.zmax/(self.zmax-self.zmin+0.0))],
-		[0,0,1,0]]) 
+		[self.yres/float(self.xres)/math.tan(self.fov/2.0),0,0,0],
+		[0,1/math.tan(self.fov/2.0),0,0],
+		[0,0,1*(self.zmax+self.zmin)/float(self.zmax-self.zmin),(-2*self.zmin*self.zmax)/float(self.zmax-self.zmin)],
+		[0,0,-1,0]]) 
 
 	def refresh(self):
 		self.forward = (self.origin - self.target).direction()
@@ -44,21 +44,25 @@ class cam:
 		[self.forward.data[0],self.forward.data[1],self.forward.data[2],(self.forward*self.origin)*-1],[0,0,0,1]])
 
 	def push(self, mesh):
+		camera_space = np.matmul(self.view_matrix, mesh.model_matrix)
 		for polygon in mesh.polygon_data:
 			#clip_space = multi_dot([self.projection_matrix , self.view_matrix , mesh.model_matrix])
-			camera_space = np.matmul(self.view_matrix, mesh.model_matrix)
 			v1 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[0]).numerical())))
 			v2 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[1]).numerical())))
 			v3 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[2]).numerical())))
 			tri = triangle([v1,v2,v3],polygon.color)
 			self.buffer.append(tri)
+			#if tri.color == (0,78,100):
+			#	print("camera", v1.numerical())
 
 	def depth_sort(self):
 		for i in range(len(self.buffer)):
 			for j in range(1,len(self.buffer)):
 				maximum = max((self.buffer[j-1].data[0].data[2]),(self.buffer[j-1].data[1].data[2]),(self.buffer[j-1].data[2].data[2]))
 				minimum = min((self.buffer[j].data[0].data[2]),(self.buffer[j].data[1].data[2]),(self.buffer[j].data[2].data[2]))
-				if maximum < minimum:
+				if (maximum < minimum):
+					#if (self.buffer[j-1].color == (0,78,100)) and (self.buffer[j].color == (0,78,100)):
+					#	print(maximum, minimum)
 					temp = self.buffer[j-1]
 					self.buffer[j-1] = self.buffer[j]
 					self.buffer[j] = temp
@@ -77,7 +81,7 @@ class cam:
 			pygame.draw.lines(self.display,(255,255,255),True,[v1,v2,v3],1)
 
 	def pop(self):
-		#self.zclippers()
+		self.zclippers()
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
@@ -88,7 +92,8 @@ class cam:
 			if ((tri.normal*tri.data[0]) > 0):
 				self.buffer.append(new_tri)
 		
-		#self.clippers()
+
+		
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
@@ -97,7 +102,9 @@ class cam:
 			v3 = remove_w(tri.data[2])
 			new_tri = triangle([v1,v2,v3],tri.color)
 			self.buffer.append(new_tri)
-		
+			#if tri.color == (0,78,100):
+			#	print("clip: ",v1.numerical())
+		self.clippers()
 		self.depth_sort()
 		self.draw_frame()
 		self.buffer = []
@@ -132,29 +139,29 @@ class cam:
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([-1,0,0]),vector([0.5,0,0]))
+			self.clip_against(tri, vector([-1,0,0]),vector([1,0,0]))
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([1,0,0]),vector([-0.5,0,0]))
+			self.clip_against(tri, vector([1,0,0]),vector([-1,0,0]))
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([0,-1,0]),vector([0,0.5,0]))
+			self.clip_against(tri, vector([0,-1,0]),vector([0,1,0]))
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([0,1,0]),vector([0,-0.5,0]))
+			self.clip_against(tri, vector([0,1,0]),vector([0,-1,0]))
 
 	def zclippers(self):
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([0,0,-1]),vector([0,0,self.zmin]))
+			self.clip_against(tri, vector([0,0,-1]),vector([0,0,-1*self.zmin]))
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
-			self.clip_against(tri, vector([0,0,1]),vector([0,0,self.zmax]))
+			self.clip_against(tri, vector([0,0,1]),vector([0,0,-1*self.zmax]))
 
 	def clip_against(self, tri, normal, point):
 		outside = []

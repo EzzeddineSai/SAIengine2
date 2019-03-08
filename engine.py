@@ -12,7 +12,7 @@ xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211),"go":(0,78,100)}
-nikon = cam(vector([0,0,0]),1.0,xres,yres,0.3,100,display)
+nikon = cam(vector([0,0,0]),1.0,xres,yres,0.3,50,display)
 
 
 cube1 = graph(vector([-3,0,10]))
@@ -168,7 +168,7 @@ while not crashed:
 	mouse = pygame.mouse.get_pos()
 
 	if (xbox_controler):
-		game_pad(0.03,0.005,0.05)
+		game_pad(0.1,0.01,0.07)
 	else:
 		keys = pygame.key.get_pressed()
 		key_board(keys,0.2)
@@ -181,10 +181,10 @@ while not crashed:
 		if event.type == pygame.QUIT:
 			crashed = True
 	#print(clock.get_fps())
-	#draw_plane()
+	draw_plane()
 	draw_cube(cube1)
-	#draw_cube(cube2)
-	#draw_cube(cube3)
+	draw_cube(cube2)
+	draw_cube(cube3)
 	#draw_wave()
 	nikon.pop()
 	#nikon.draw_wire(cube1)
