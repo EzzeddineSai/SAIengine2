@@ -12,7 +12,7 @@ xres = 1280
 yres = 720
 display = pygame.display.set_mode((xres,yres))
 colors = {"black":(0,0,0),"white":(255,255,255),"red":(255,0,0),"green":(0,255,0),"blue":(0,0,255),"yellow":(255,255,0),"grey":(211,211,211),"go":(0,78,100)}
-nikon = cam(vector([0,0,0]),1.7,xres,yres,0.3,100,display)
+nikon = cam(vector([0,0,0]),1.0,xres,yres,0.3,100,display)
 
 
 cube1 = graph(vector([-3,0,10]))
@@ -102,17 +102,17 @@ def game_pad(l_sensitivity, r_sensitivity, t_sensitivity):
 	if analog_right < -0.2:
 		nikon.rotate(r_sensitivity*analog_right*nikon.fov, nikon.up)
 	if analog_up > 0.2:
-		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.right(1))
+		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.rightward)
 	if analog_up < -0.2:
-		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.right(1))
+		nikon.rotate(r_sensitivity*analog_up*nikon.fov, nikon.rightward)
 	if 	analog_right_t > 0.2:
-		nikon.translate(nikon.right(l_sensitivity*analog_right_t*nikon.fov))
+		nikon.translate(nikon.rightward.scale(l_sensitivity*analog_right_t))
 	if 	analog_right_t < -0.2:
-		nikon.translate(nikon.right(l_sensitivity *analog_right_t*nikon.fov))
+		nikon.translate(nikon.rightward.scale(l_sensitivity *analog_right_t))
 	if 	analog_forward  > 0.2:
-		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward*nikon.fov))
+		nikon.translate(cross(nikon.up,nikon.rightward.scale(l_sensitivity*analog_forward)))
 	if 	analog_forward < -0.2:
-		nikon.translate(cross(nikon.up,nikon.right(1)).scale(l_sensitivity *analog_forward*nikon.fov))
+		nikon.translate(cross(nikon.up,nikon.rightward.scale(l_sensitivity*analog_forward)))
 	if analog_fly < -0.2:
 		nikon.translate(nikon.up.scale(-1*analog_fly*t_sensitivity))
 	if analog_fly > 0.2:
@@ -151,7 +151,7 @@ pygame.display.set_caption("SAIengine")
 pygame.mouse.set_visible(False)
 pygame.event.set_grab(True)
 clock = pygame.time.Clock()
-crashed = False
+crashed = False 
 mouse_motion = (0,0)
 mouse_position = (0,0)
 assign_cube(cube1)
