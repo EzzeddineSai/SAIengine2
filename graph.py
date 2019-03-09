@@ -42,7 +42,7 @@ class graph:
 		self.model_matrix = multi_dot([ self.translation_matrix , self.rotation_matrix , self.scale_matrix])
 
 	def translate(self,displacement):
-		m = np.array([[1,0,0,displacement.data[0]],[0,1,0,displacement[1]],[0,0,1,displacement[2]],[0,0,0,1]])
+		m = np.array([[1,0,0,displacement.data[0]],[0,1,0,displacement.data[1]],[0,0,1,displacement.data[2]],[0,0,0,1]])
 		self.translation_matrix = np.matmul(m,self.translation_matrix )
 		self.model_matrix = multi_dot([ self.translation_matrix , self.rotation_matrix , self.scale_matrix])
 

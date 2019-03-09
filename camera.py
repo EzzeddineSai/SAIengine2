@@ -8,14 +8,13 @@ from numpy.linalg import multi_dot
 #z 1 to 0, -0.5 to 0.5
 
 class cam:
-	def __init__(self,origin,fov,xres,yres,zmin,zmax,display):
+	def __init__(self,origin,fov,xres,yres,zmin,zmax):
 		self.zmin = zmin
 		self.zmax = zmax
 		self.xres = xres
 		self.yres = yres
 		self.origin = origin	#eye
 		self.fov = fov
-		self.display = display
 		self.buffer = []
 		
 		self.up = vector([0,1,0])	#for tilt
@@ -46,14 +45,11 @@ class cam:
 	def push(self, mesh):
 		camera_space = np.matmul(self.view_matrix, mesh.model_matrix)
 		for polygon in mesh.polygon_data:
-			#clip_space = multi_dot([self.projection_matrix , self.view_matrix , mesh.model_matrix])
 			v1 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[0]).numerical())))
 			v2 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[1]).numerical())))
 			v3 = remove_w(vector(np.matmul(camera_space,add_w(polygon.data[2]).numerical())))
 			tri = triangle([v1,v2,v3],polygon.color)
 			self.buffer.append(tri)
-			#if tri.color == (0,78,100):
-			#	print("camera", v1.numerical())
 
 	def depth_sort(self):
 		for i in range(len(self.buffer)):
@@ -61,24 +57,24 @@ class cam:
 				maximum = max((self.buffer[j-1].data[0].data[2]),(self.buffer[j-1].data[1].data[2]),(self.buffer[j-1].data[2].data[2]))
 				minimum = min((self.buffer[j].data[0].data[2]),(self.buffer[j].data[1].data[2]),(self.buffer[j].data[2].data[2]))
 				if (maximum < minimum):
-					#if (self.buffer[j-1].color == (0,78,100)) and (self.buffer[j].color == (0,78,100)):
-					#	print(maximum, minimum)
 					temp = self.buffer[j-1]
 					self.buffer[j-1] = self.buffer[j]
 					self.buffer[j] = temp
 	
-	def pygame_coord(self, point):
-		#return ((self.xres*point.data[0]) + (self.xres/2.0),-1*((self.yres*point.data[1])-(self.yres/2.0)))
-		return (((self.xres*point.data[0]) + self.xres)/2.0,((self.yres*point.data[1])-self.yres)/-2.0)
+	def pygame_coord(self, x, y):
+		return (((self.xres*x) + self.xres)/2.0,((self.yres*y)-self.yres)/-2.0)
 
 	def draw_frame(self):
+		normalized_coordinates = []
 		for tri in self.buffer:
-			v1 = self.pygame_coord(tri.data[0])
-			v2 = self.pygame_coord(tri.data[1])
-			v3 = self.pygame_coord(tri.data[2])
-			pygame.draw.polygon(self.display,tri.color,[v1,v2,v3],0)
-			pygame.draw.lines(self.display,(0,0,0),True,[v1,v2,v3],5)
-			pygame.draw.lines(self.display,(255,255,255),True,[v1,v2,v3],1)
+			v1 = (tri.data[0].data[0],tri.data[0].data[1])
+			v2 = (tri.data[1].data[0],tri.data[0].data[1])
+			v3 = (tri.data[2].data[0],tri.data[0].data[1])
+			normalized_coordinates.append([v1,v2,v3,tri.color])
+		self.buffer = []
+		return normalized_coordinates
+			#pygame.draw.lines(self.display,(0,0,0),True,[v1,v2,v3],5)
+			#pygame.draw.lines(self.display,(255,255,255),True,[v1,v2,v3],1)
 
 	def pop(self):
 		self.zclippers()
@@ -92,8 +88,6 @@ class cam:
 			if ((tri.normal*tri.data[0]) > 0):
 				self.buffer.append(new_tri)
 		
-
-		
 		temp = self.buffer
 		self.buffer = []
 		for tri in temp:
@@ -102,13 +96,13 @@ class cam:
 			v3 = remove_w(tri.data[2])
 			new_tri = triangle([v1,v2,v3],tri.color)
 			self.buffer.append(new_tri)
-			#if tri.color == (0,78,100):
-			#	print("clip: ",v1.numerical())
+		
 		self.clippers()
 		self.depth_sort()
-		self.draw_frame()
+		temp = self.buffer
 		self.buffer = []
-		#print(remove_w(vector(np.matmul(self.projection_matrix,np.array([0,0,self.zmin,1])))).numerical())
+		return temp
+
 
 	def translate(self, displacement):
 		self.origin += displacement
@@ -119,7 +113,7 @@ class cam:
 		rotator =  rotation_matrix(axis,angle)
 		self.target = self.origin+remove_w(vector(np.matmul(rotator,add_w((self.target- self.origin).direction()).numerical())))
 		self.refresh()
-	
+	'''
 	def draw_wire(self, mesh):
 		for polygon in mesh.polygon_data:
 			clip_space = multi_dot([self.projection_matrix() , self.view_matrix() , mesh.model_matrix])
@@ -129,7 +123,7 @@ class cam:
 			pygame.draw.lines(self.display,(0,0,0),True,[v1,v2,v3],5)
 			pygame.draw.lines(self.display,(255,255,255),True,[v1,v2,v3],1)
 		self.refresh()
-
+	'''
 	def line_intersection(self, v1, v2, normal, point):
 		d = (((point)-v2)*normal)/((v2-v1)*(normal))
 		pnt = ((v2-v1).scale(d))+v2
